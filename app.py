@@ -4,25 +4,28 @@ from solver import solver
 
 import dash_cytoscape as cyto
 import plotly.express as px
-import pandas as pd
+
 import numpy as np
 import base64
-import datetime
 import io
+import plotly.graph_objects as go
 
+import networkx as nx
 import pandas as pd
 
 df = pd.DataFrame(
     {"localization": ["Magazine", "L1"], "x": [0, 1], "y": [0, 3], "demand": [4, 1]}
 )
 
-output_df = pd.DataFrame(
-    {
-        "vehicle": ["V1", "V2"],
-        "route": [[0, 1, 2, 0], [0, 3, 4, 0]],
-        "load": [0.80, 0.3],
-    }
-)
+output_df = pd.DataFrame()
+
+# output_df = pd.DataFrame(
+#     {
+#         "vehicle": ["V1", "V2"],
+#         "route": [[0, 1, 2, 0], [0, 3, 4, 0]],
+#         "load": [0.80, 0.3],
+#     }
+# )
 
 # MAIN
 
@@ -163,6 +166,7 @@ def display_output(rows, columns):
     Input("iterations_number_input", "value"),
 )
 def update_output(n_clicks, capacity, iterations):
+    global output_df
     if n_clicks == 0:
         return ""
     else:
@@ -196,12 +200,14 @@ def update_output(n_clicks, capacity, iterations):
         for route in output_df["route"]:
             route.append("Magazine")
             route.insert(0, "Magazine")
+            i = 0
             for a, b in zip(route[:-1], route[1:]):
+                i = i + 1
                 if a != "Magazine":
                     a = f"L{a}"
                 if b != "Magazine":
                     b = f"L{b}"
-                ls2.append({"data": {"source": a, "target": b}})
+                ls2.append({"data": {"source": a, "target": b}, "classes": "red"})
         graph_elements = ls1 + ls2
 
         return html.Div(
@@ -222,11 +228,28 @@ def update_output(n_clicks, capacity, iterations):
                     layout={"name": "cose"},
                     style={"width": "1080px", "height": "720px"},
                 ),
+                html.Button(
+                    "Download Results",
+                    id="btn-download-results",
+                    style={
+                        "font-size": "12px",
+                        "width": "140px",
+                        "display": "inline-block",
+                        "margin-bottom": "10px",
+                        "margin-right": "5px",
+                        "height": "37px",
+                        "verticalAlign": "top",
+                    },
+                ),
+                dcc.Download(
+                    id="download-results",
+                ),
             ],
         )
 
 
 def parse_contents(contents, filename, date):
+    global output_df
     content_type, content_string = contents.split(",")
 
     decoded = base64.b64decode(content_string)
@@ -243,5 +266,15 @@ def parse_contents(contents, filename, date):
         print(e, "There was an error processing this file.")
 
 
+@app.callback(
+    Output("download-results", "data"),
+    Input("btn-download-results", "n_clicks"),
+    prevent_initial_call=True,
+    suppress_callback_exceptions=True,
+)
+def func(n_clicks):
+    return dict(content=output_df.to_csv(index=False), filename="CRVP_output.csv")
+
+
 if __name__ == "__main__":
-    app.run_server(debug=True)
+    app.run_server(debug=False)
