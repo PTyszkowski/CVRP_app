@@ -51,7 +51,7 @@ def count_vehicle_distances(roads, distance_matrix, depot_distance_array):
         # from and to depot
         road_distance += depot_distance_array[road[0] - 1]
         road_distance += depot_distance_array[road[-1] - 1]
-        distances[k] = road_distance
+        distances[k] = round(road_distance, 2)
         k = k + 1
 
     return distances
