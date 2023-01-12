@@ -173,7 +173,7 @@ def update_output(n_clicks, capacity, iterations):
         # depot_coords = (0, 0)
         # df[['x', 'y']].iloc[0] -> depot coordinates
         iterations = int(iterations)
-        min_distance, best_routes, best_loads = solver(
+        min_distance, best_routes, best_loads, best_distances = solver(
             df[1:], capacity, iterations, df[["x", "y"]].iloc[0]
         )
         print(
@@ -191,6 +191,7 @@ def update_output(n_clicks, capacity, iterations):
                 "vehicle": list(range(1, len(best_loads) + 1)),
                 "route": best_routes.values(),
                 "load": best_loads.values(),
+                "distance": best_distances.values(),
             }
         )
 
@@ -219,6 +220,7 @@ def update_output(n_clicks, capacity, iterations):
                         {"id": "vehicle", "name": "Vehicle", "type": "numeric"},
                         {"id": "route", "name": "Route", "type": "text"},
                         {"id": "load", "name": "Load", "type": "numeric"},
+                        {"id": "distance", "name": "Distance", "type": "numeric"},
                     ],
                     data=output_df.astype(str).to_dict("records"),
                 ),
